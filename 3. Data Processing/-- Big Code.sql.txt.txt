@@ -1,0 +1,51 @@
+-- Big Code 
+SELECT
+    transaction_date, -- appears on the original table
+    DAYNAME(transaction_date) AS Day_name, -- Extracting the day of the week, e.g. 'Monday', 'Tuesday', etc Therefore DAYNAME will be a New column
+    MONTHNAME(transaction_date) AS Month_name, --Exctracting the name of the month, therefore MONTHNAME will be a New column.
+     COUNT(transaction_id) AS number_of_sales, -- row counting (counting all the transation ID's we have, be it Distinct or not), this will be a new column
+     SUM(transaction_qty) AS units_sold, -- This is a new column I created to calculate the units sold.
+     COUNT(DISTINCT product_id) AS unique_products, -- Calculates the variety of items sold, this will be a new column.
+     COUNT(store_id) AS number_of_stores, --  This is to simply count how many times a store_id appears in the transaction logs (which will likely equal your total transactions), this will be a new column. 
+     SUM(transaction_qty * unit_price) AS revenue; -- This is a new column I created to calculate the revenue (transaction qty x unit price)
+
+-- Case statements always create buckets to enhance analysis
+-- This CASE statement is classifying the dayname column into day classification buckets
+    CASE
+        WHEN DAYNAME(transaction_date) IN ('Saturday','Sunday') THEN 'Weekend'
+        WHEN DAYNAME(transaction_date) IN ('Monday','Tuesday','Wednesday','Thursday','Friday') THEN 'Weekday'
+    END AS day_classification,
+
+-- This CASE statement is classifyung the transaction time column into time buckets. This is a new column.
+    CASE
+        WHEN transaction_time BETWEEN '06:00:00' AND '11:59:59' THEN 'Morning'
+        WHEN transaction_time BETWEEN '12:00:00' AND '17:59:59' THEN 'Afternoon'
+        WHEN transaction_time BETWEEN '18:00:00' AND '20:59:59' THEN 'Evening'
+    END AS time_classification, 
+
+-- The below columns are the non-aggreagted data from the original table but we still going to use/want
+    store_location,
+    product_category,
+    product_type,
+    product_detail
+
+FROM brightcoffee.default.bright_shop_sales_dataset
+GROUP BY
+    transaction_date,
+    Day_name,
+    month_name,
+    store_location,
+    product_category,
+    product_type,
+    product_detail,
+
+    CASE
+        WHEN DAYNAME(transaction_date) IN ('Saturday','Sunday') THEN 'Weekend'
+        WHEN DAYNAME(transaction_date) IN ('Monday','Tuesday','Wednesday','Thursday','Friday') THEN 'Weekday'
+    END,
+
+    CASE
+        WHEN transaction_time BETWEEN '06:00:00' AND '11:59:59' THEN 'Morning'
+        WHEN transaction_time BETWEEN '12:00:00' AND '17:59:59'  THEN 'Afternoon'
+        WHEN transaction_time BETWEEN '18:00:00' AND '20:59:59' THEN 'Evening'
+    END
