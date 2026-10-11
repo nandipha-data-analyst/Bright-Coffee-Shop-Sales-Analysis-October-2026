@@ -30,7 +30,9 @@ To solve the problem statement, this analysis focuses on answering the following
 The project utilizes a modern data stack to process raw records, build models, and present executive insights:
 • Databricks: Used for scalable data processing, data cleaning, and exploratory data analysis (EDA) and dashboard creation using SQL.
 • Microsoft Excel: Used for Pivot tables and Dashboard creation.
+• Microsoft Power BI: Used to connect to raw data, transform it, and build interactive dashboards
 • Microsoft PowerPoint: Used to build the final executive presentation and communicate actionable insights to the CEO.
+
 
 
 
