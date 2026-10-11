@@ -1,0 +1,78 @@
+-- Inspection Data (Small codes) 
+SELECT *,
+    -- 1. Clean price & Calculate Revenue (handles commas used as decimals)
+    (transaction_qty * CAST(REPLACE(CAST(unit_price AS STRING), ',', '.') AS DOUBLE)) AS revenue,
+    -- 2. Extract Hour for Peak Time Analysis
+    HOUR(CAST(transaction_time AS TIMESTAMP)) AS transaction_hour,
+    -- 3. Get Month Name for Slicers
+    DATE_FORMAT(transaction_date, 'MMMM') AS transaction_month,
+    -- 4. Get Day of Week Name
+    DATE_FORMAT(transaction_date, 'EEEE') AS day_of_the_week,
+    -- 5. Day Number to fix alphabetical sorting issues in BI tools
+    DAYOFWEEK(transaction_date) AS day_of_the_week
+FROM 
+    brightcoffee.default.bright_shop_sales_dataset;
+
+-- Store Location + Month (Store Performace Analysis - Revenue by Location)
+SELECT store_location, transaction_date, SUM(transaction_qty * CAST(REPLACE(unit_price, ',', '.') AS DOUBLE)) AS total_revenue
+FROM brightcoffee.default.bright_shop_sales_dataset
+GROUP BY store_location, transaction_date
+ORDER BY store_location, transaction_date;
+
+-- Peak hour by Store Location (Store Performace Analysis - Peak Hours)
+SELECT 
+    store_location,
+    HOUR(CAST(transaction_time AS TIMESTAMP)) AS sale_hour,
+    COUNT(DISTINCT transaction_id) AS total_transactions,
+    SUM(transaction_qty) AS total_units_dispatched
+FROM 
+    brightcoffee.default.bright_shop_sales_dataset
+GROUP BY 
+    store_location,
+    sale_hour
+ORDER BY 
+    store_location, 
+    sale_hour ASC;
+
+-- Top 3 Best Selling items
+    SELECT 
+        store_location,
+        product_type,
+        SUM(transaction_qty) AS total_sold,
+        DENSE_RANK() OVER (
+            PARTITION BY store_location 
+            ORDER BY SUM(transaction_qty) DESC
+        ) AS sales_rank
+    FROM 
+       brightcoffee.default.bright_shop_sales_dataset
+    GROUP BY 
+        store_location, 
+        product_type;
+
+-- Quantity vs Revenue (Product Performance)
+SELECT product_type, SUM(transaction_qty) AS total_qty, SUM(transaction_qty * CAST(REPLACE(unit_price, ',', '.') AS DOUBLE)) AS total_revenue
+FROM brightcoffee.default.bright_shop_sales_dataset
+GROUP BY product_type;
+
+-- Dashboard Summary (KPI's)
+SELECT 
+    SUM(transaction_qty) AS total_qty, 
+    SUM(transaction_qty * CAST(REPLACE(unit_price, ',', '.') AS DOUBLE)) AS total_sales,
+    SUM(transaction_qty) AS total_items_sold,
+    COUNT(DISTINCT transaction_id) AS total_orders,
+    ROUND(SUM(transaction_qty * CAST(REPLACE(unit_price, ',', '.') AS DOUBLE)) / COUNT(DISTINCT transaction_id), 2) AS avg_ticket_size
+FROM brightcoffee.default.bright_shop_sales_dataset;
+
+-- Executive_KPI_Base
+SELECT 
+    SUM(transaction_qty * CAST(REPLACE(unit_price, ',', '.') AS DOUBLE)) AS total_revenue,
+    COUNT(DISTINCT transaction_id) AS total_orders,
+    SUM(transaction_qty) AS total_quantity_sold,
+    ROUND(SUM(transaction_qty * CAST(REPLACE(unit_price, ',', '.') AS DOUBLE)) / COUNT(DISTINCT transaction_id), 2) AS average_ticket_value
+FROM brightcoffee.default.bright_shop_sales_dataset;
+
+
+
+
+
+    
